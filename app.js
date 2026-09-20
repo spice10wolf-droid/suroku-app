@@ -150,7 +150,7 @@ function openForm(date = new Date().toISOString().slice(0, 10), record = null) {
   form.shop.value = record?.shop || ""; form.machine.value = record?.machine || "";
   form.machineNumber.value = record?.machineNumber || "";
   form.rate.value = record?.rate || "20スロ";
-  form.investment.value = record?.investment ?? 0; form.returnAmount.value = record?.returnAmount ?? 0;
+  form.investment.value = record ? record.investment : ""; form.returnAmount.value = record ? record.returnAmount : "";
   form.memo.value = record?.memo || "";
   document.querySelector("#record-dialog h2").textContent = record ? "収支を編集" : "収支を記録";
   recordDialog.showModal();
@@ -193,7 +193,7 @@ form.addEventListener("submit", (event) => {
   values.machineNumber = values.machineNumber.trim();
   values.memo = values.memo.trim();
   const records = getRecords();
-  const record = { ...values, id: editingId || crypto.randomUUID(), investment: Number(values.investment), returnAmount: Number(values.returnAmount) };
+  const record = { ...values, id: editingId || crypto.randomUUID(), investment: Number(values.investment || 0), returnAmount: Number(values.returnAmount || 0) };
   saveRecords(editingId ? records.map((item) => item.id === editingId ? record : item) : [...records, record]);
   saveName(shopsKey, values.shop);
   saveName(machinesKey, values.machine);

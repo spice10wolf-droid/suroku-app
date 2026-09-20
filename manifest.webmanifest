@@ -1,6 +1,6 @@
 {
-  "name": "スロ収支",
-  "short_name": "スロ収支",
+  "name": "スロットパチンコ収支表",
+  "short_name": "スロットパチンコ収支表",
   "description": "パチスロ・パチンコの収支を記録するアプリ",
   "start_url": "./",
   "display": "standalone",

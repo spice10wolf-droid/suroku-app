@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#090909" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="スロ収支" />
-    <title>🎰 スロ収支</title>
+    <meta name="apple-mobile-web-app-title" content="スロットパチンコ収支表" />
+    <title>スロットパチンコ収支表</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon.svg" />
     <link rel="stylesheet" href="style.css" />
@@ -16,7 +16,7 @@
     <main class="app-shell">
       <section id="dashboard-view">
       <header class="hero">
-        <p class="app-name">🎰 スロ収支</p>
+        <p class="app-name">スロットパチンコ収支表</p>
         <button id="show-analysis" class="analysis-nav">集計</button>
         <p class="eyebrow">今月の収支</p>
         <h1 id="monthly-total">¥0</h1>
@@ -76,17 +76,17 @@
       <form id="record-form">
         <div class="dialog-heading"><h2>収支を記録</h2><button type="button" id="close-form" class="close-button">×</button></div>
         <label>日付<input id="date" name="date" type="date" required /></label>
-        <label>店名（任意）<input name="shop" type="text" list="shop-options" placeholder="例：〇〇ホール" /><small>入力欄を押すと、過去に使った候補を選べます</small></label>
+        <label>店名<input name="shop" type="text" list="shop-options" placeholder="例：〇〇ホール" /><small>入力欄を押すと、過去に使った候補を選べます</small></label>
         <datalist id="shop-options"></datalist>
-        <label>機種名（任意）<input name="machine" type="text" list="machine-options" placeholder="例：L北斗の拳" /><small>入力欄を押すと、過去に使った候補を選べます</small></label>
+        <label>機種名<input name="machine" type="text" list="machine-options" placeholder="例：L北斗の拳" /><small>入力欄を押すと、過去に使った候補を選べます</small></label>
         <datalist id="machine-options"></datalist>
-        <label>台番号（任意）<input name="machineNumber" type="text" inputmode="numeric" placeholder="例：123" /></label>
+        <label>台番号<input name="machineNumber" type="text" inputmode="numeric" placeholder="例：123" /></label>
         <label>レート<select name="rate"><option>20スロ</option><option>5スロ</option><option>4パチ</option><option>1パチ</option><option>その他</option></select></label>
         <div class="money-fields">
-          <label>投資（円）<input name="investment" type="number" min="0" step="1" value="0" /></label>
-          <label>回収（円）<input name="returnAmount" type="number" min="0" step="1" value="0" /></label>
+          <label>投資（円）<input name="investment" type="number" min="0" step="1" /></label>
+          <label>回収（円）<input name="returnAmount" type="number" min="0" step="1" /></label>
         </div>
-        <label>メモ（任意）<textarea name="memo" rows="3" placeholder="例：イベント日。高設定っぽかった。"></textarea></label>
+        <label>メモ<textarea name="memo" rows="3" placeholder="例：イベント日。高設定っぽかった。"></textarea></label>
         <button type="submit" class="primary-button">保存する</button>
       </form>
     </dialog>
