@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#090909" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="スロ収支" />
+    <title>🎰 スロ収支</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="dashboard-view">
+      <header class="hero">
+        <p class="app-name">🎰 スロ収支</p>
+        <button id="show-analysis" class="analysis-nav">集計</button>
+        <p class="eyebrow">今月の収支</p>
+        <h1 id="monthly-total">¥0</h1>
+      </header>
+      <div class="calendar-wrap">
+        <section class="calendar-card">
+          <div class="calendar-toolbar">
+            <button class="month-button" id="previous-month" aria-label="前の月">‹</button>
+            <h2 id="month-label"></h2>
+            <button class="month-button" id="next-month" aria-label="次の月">›</button>
+          </div>
+          <div class="weekdays"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+          <div id="calendar" class="calendar"></div>
+        </section>
+        <button id="open-form" class="add-button" aria-label="収支を記録" title="収支を記録">＋</button>
+      </div>
+      <section class="summary-card" aria-label="月間成績">
+        <h2>月間成績</h2>
+        <div class="summary-grid">
+          <div class="stat"><span>総投資</span><strong id="monthly-investment">¥0</strong></div>
+          <div class="stat"><span>総回収</span><strong id="monthly-return">¥0</strong></div>
+          <div class="stat"><span>打った日数</span><strong id="monthly-days">0日</strong></div>
+          <div class="stat"><span>勝率</span><strong id="monthly-win-rate">—</strong></div>
+        </div>
+      </section>
+      <section class="summary-card" aria-label="年間成績">
+        <h2 id="yearly-title">年間成績</h2>
+        <div class="summary-grid">
+          <div class="stat"><span>総投資</span><strong id="yearly-investment">¥0</strong></div>
+          <div class="stat"><span>総回収</span><strong id="yearly-return">¥0</strong></div>
+          <div class="stat"><span>打った日数</span><strong id="yearly-days">0日</strong></div>
+          <div class="stat"><span>勝率</span><strong id="yearly-win-rate">—</strong></div>
+          <div class="stat annual-total-stat"><span>累計収支</span><strong id="yearly-total">¥0</strong></div>
+        </div>
+      </section>
+      </section>
+      <section id="analysis-view" hidden>
+        <header class="view-toolbar">
+          <button id="show-dashboard" class="back-button">‹ ホーム</button>
+          <h1>累計収支</h1>
+        </header>
+      <section class="summary-card ranking-card" aria-label="店舗別収支">
+        <div class="ranking-heading"><h2 id="shop-ranking-title">店舗別の累計収支</h2><select id="shop-sort" class="sort-select" aria-label="店舗別の並び替え"><option value="total-desc">収支が高い順</option><option value="total-asc">収支が低い順</option><option value="investment-desc">投資が多い順</option><option value="return-desc">回収が多い順</option><option value="count-desc">記録数が多い順</option><option value="name-asc">名前順</option></select></div>
+        <div id="shop-ranking" class="ranking-list"></div>
+      </section>
+      <section class="summary-card ranking-card" aria-label="機種別収支">
+        <div class="ranking-heading"><h2 id="machine-ranking-title">機種別の累計収支</h2><select id="machine-sort" class="sort-select" aria-label="機種別の並び替え"><option value="total-desc">収支が高い順</option><option value="total-asc">収支が低い順</option><option value="investment-desc">投資が多い順</option><option value="return-desc">回収が多い順</option><option value="count-desc">記録数が多い順</option><option value="name-asc">名前順</option></select></div>
+        <div id="machine-ranking" class="ranking-list"></div>
+      </section>
+      <section class="summary-card ranking-card" aria-label="レート別収支">
+        <div class="ranking-heading"><h2>レート別の累計収支</h2><select id="rate-sort" class="sort-select" aria-label="レート別の並び替え"><option value="total-desc">収支が高い順</option><option value="total-asc">収支が低い順</option><option value="investment-desc">投資が多い順</option><option value="return-desc">回収が多い順</option><option value="count-desc">記録数が多い順</option><option value="name-asc">名前順</option></select></div>
+        <div id="rate-ranking" class="ranking-list"></div>
+      </section>
+      </section>
+    </main>
+    <dialog id="record-dialog">
+      <form id="record-form">
+        <div class="dialog-heading"><h2>収支を記録</h2><button type="button" id="close-form" class="close-button">×</button></div>
+        <label>日付<input id="date" name="date" type="date" required /></label>
+        <label>店名（任意）<input name="shop" type="text" list="shop-options" placeholder="例：〇〇ホール" /><small>入力欄を押すと、過去に使った候補を選べます</small></label>
+        <datalist id="shop-options"></datalist>
+        <label>機種名（任意）<input name="machine" type="text" list="machine-options" placeholder="例：L北斗の拳" /><small>入力欄を押すと、過去に使った候補を選べます</small></label>
+        <datalist id="machine-options"></datalist>
+        <label>台番号（任意）<input name="machineNumber" type="text" inputmode="numeric" placeholder="例：123" /></label>
+        <label>レート<select name="rate"><option>20スロ</option><option>5スロ</option><option>4パチ</option><option>1パチ</option><option>その他</option></select></label>
+        <div class="money-fields">
+          <label>投資（円）<input name="investment" type="number" min="0" step="1" value="0" /></label>
+          <label>回収（円）<input name="returnAmount" type="number" min="0" step="1" value="0" /></label>
+        </div>
+        <label>メモ（任意）<textarea name="memo" rows="3" placeholder="例：イベント日。高設定っぽかった。"></textarea></label>
+        <button type="submit" class="primary-button">保存する</button>
+      </form>
+    </dialog>
+    <dialog id="details-dialog">
+      <div class="dialog-heading"><h2 id="details-title">収支の記録</h2><button type="button" id="close-details" class="close-button">×</button></div>
+      <div id="record-list" class="record-list"></div>
+      <button type="button" id="add-record-on-date" class="secondary-button">＋ この日に追加</button>
+    </dialog>
+    <script src="app.js"></script>
+  </body>
+</html>
