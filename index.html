@@ -17,7 +17,6 @@
       <section id="dashboard-view">
       <header class="hero">
         <p class="app-name">スロットパチンコ収支表</p>
-        <button id="show-analysis" class="analysis-nav">集計</button>
         <p class="eyebrow">今月の収支</p>
         <h1 id="monthly-total">¥0</h1>
       </header>
@@ -55,7 +54,6 @@
       </section>
       <section id="analysis-view" hidden>
         <header class="view-toolbar">
-          <button id="show-dashboard" class="back-button">‹ ホーム</button>
           <h1>累計収支</h1>
         </header>
       <section class="summary-card ranking-card" aria-label="店舗別収支">
@@ -71,17 +69,60 @@
         <div id="rate-ranking" class="ranking-list"></div>
       </section>
       </section>
+      <section id="graph-view" hidden>
+        <header class="view-toolbar"><h1>グラフ</h1></header>
+        <section class="summary-card chart-card" aria-label="月別収支グラフ">
+          <div class="chart-heading"><h2 id="monthly-chart-title">月別収支</h2><p id="monthly-chart-detail">棒を押すと金額を表示</p></div>
+          <div id="monthly-chart" class="monthly-chart"></div>
+        </section>
+      </section>
+      <section id="settings-view" hidden>
+        <header class="view-toolbar"><h1>設定</h1></header>
+        <section class="summary-card settings-card" aria-label="入力候補の設定">
+          <h2>入力候補</h2>
+          <p>よく使う店名・機種名・レートを、追加・削除・並び替えできます。</p>
+          <div class="settings-list">
+            <button type="button" class="settings-item manage-names" data-name-type="shop"><span class="settings-symbol">店</span><span><strong>店名</strong><small>収支入力で選ぶ候補を編集</small></span><b>›</b></button>
+            <button type="button" class="settings-item manage-names" data-name-type="machine"><span class="settings-symbol">台</span><span><strong>機種名</strong><small>収支入力で選ぶ候補を編集</small></span><b>›</b></button>
+            <button type="button" class="settings-item manage-names" data-name-type="rate"><span class="settings-symbol">¥</span><span><strong>レート</strong><small>特殊レートの追加・並び替え</small></span><b>›</b></button>
+          </div>
+        </section>
+        <section class="summary-card settings-card" aria-label="データのバックアップ">
+          <h2>データのバックアップ</h2>
+          <p>記録と入力候補を1つのファイルに保存できます。機種変更の前にも作っておくと安心です。</p>
+          <div class="backup-actions">
+            <button type="button" id="export-backup" class="backup-button">データを書き出す</button>
+            <label class="backup-button import-button">データを読み込む<input id="import-backup" type="file" accept="application/json,.json" /></label>
+          </div>
+        </section>
+      </section>
     </main>
+    <nav class="bottom-nav" aria-label="画面を切り替える">
+      <button type="button" class="bottom-nav-item active" data-view="calendar"><span class="nav-icon">▦</span><span>カレンダー</span></button>
+      <button type="button" class="bottom-nav-item" data-view="analysis"><span class="nav-icon">▤</span><span>集計</span></button>
+      <button type="button" class="bottom-nav-item" data-view="graph"><span class="nav-icon">▥</span><span>グラフ</span></button>
+      <button type="button" class="bottom-nav-item" data-view="settings"><span class="nav-icon">⚙</span><span>設定</span></button>
+    </nav>
     <dialog id="record-dialog">
       <form id="record-form">
         <div class="dialog-heading"><h2>収支を記録</h2><button type="button" id="close-form" class="close-button">×</button></div>
         <label>日付<input id="date" name="date" type="date" required /></label>
-        <label>店名<input name="shop" type="text" list="shop-options" placeholder="例：〇〇ホール" /><small>入力欄を押すと、過去に使った候補を選べます</small></label>
-        <datalist id="shop-options"></datalist>
-        <label>機種名<input name="machine" type="text" list="machine-options" placeholder="例：L北斗の拳" /><small>入力欄を押すと、過去に使った候補を選べます</small></label>
-        <datalist id="machine-options"></datalist>
+        <div class="choice-field">
+          <div class="choice-label"><span>店名</span><button type="button" class="manage-names" data-name-type="shop">編集</button></div>
+          <input name="shop" type="text" placeholder="未選択" readonly />
+          <div id="shop-tabs" class="name-tabs" aria-label="店名を選択"></div>
+        </div>
+        <div class="choice-field">
+          <div class="choice-label"><span>機種名</span><button type="button" class="manage-names" data-name-type="machine">編集</button></div>
+          <input name="machine" type="text" placeholder="未選択" readonly />
+          <div id="machine-tabs" class="name-tabs" aria-label="機種名を選択"></div>
+        </div>
         <label>台番号<input name="machineNumber" type="text" inputmode="numeric" placeholder="例：123" /></label>
-        <label>レート<select name="rate"><option>20スロ</option><option>5スロ</option><option>4パチ</option><option>1パチ</option><option>その他</option></select></label>
+        <div class="choice-field">
+          <div class="choice-label"><span>レート</span><button type="button" class="manage-names" data-name-type="rate">編集</button></div>
+          <input name="rate" type="text" readonly />
+          <div id="rate-tabs" class="name-tabs" aria-label="レートを選択"></div>
+        </div>
         <div class="money-fields">
           <label>投資（円）<input name="investment" type="number" min="0" step="1" /></label>
           <label>回収（円）<input name="returnAmount" type="number" min="0" step="1" /></label>
@@ -94,6 +135,12 @@
       <div class="dialog-heading"><h2 id="details-title">収支の記録</h2><button type="button" id="close-details" class="close-button">×</button></div>
       <div id="record-list" class="record-list"></div>
       <button type="button" id="add-record-on-date" class="secondary-button">＋ この日に追加</button>
+    </dialog>
+    <dialog id="name-manager-dialog">
+      <div class="dialog-heading"><h2 id="name-manager-title"></h2><button type="button" id="close-name-manager" class="close-button">×</button></div>
+      <div class="name-add-row"><input id="name-manager-input" type="text" placeholder="名前を入力" /><button type="button" id="add-name" class="secondary-button">追加</button></div>
+      <p class="manager-help">空欄の候補は追加できません。不要な候補は右の×で消せます。</p>
+      <div id="name-manager-list" class="name-manager-list"></div>
     </dialog>
     <script src="app.js"></script>
   </body>
