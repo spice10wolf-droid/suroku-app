@@ -1,4 +1,4 @@
-const cacheName = "suroku-v5";
+const cacheName = "suroku-v9";
 const appFiles = ["./", "./index.html", "./style.css", "./app.js", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {

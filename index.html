@@ -75,6 +75,16 @@
           <div class="chart-heading"><h2 id="monthly-chart-title">月別収支</h2><p id="monthly-chart-detail">棒を押すと金額を表示</p></div>
           <div id="monthly-chart" class="monthly-chart"></div>
         </section>
+        <section class="summary-card line-chart-card" aria-label="投資と回収の推移グラフ">
+          <div class="chart-heading"><h2 id="flow-chart-title">投資・回収の推移</h2><p id="flow-chart-detail">点を押すと金額を表示</p></div>
+          <div class="chart-legend" aria-label="グラフの凡例"><span class="investment-line">投資</span><span class="return-line">回収</span></div>
+          <div id="flow-chart" class="flow-chart"></div>
+        </section>
+        <section class="summary-card line-chart-card" aria-label="累計収支グラフ">
+          <div class="chart-heading"><h2 id="cumulative-chart-title">累計収支の推移</h2><p id="cumulative-chart-detail">点を押すと金額を表示</p></div>
+          <div class="chart-legend"><span class="cumulative-line">累計収支</span></div>
+          <div id="cumulative-chart" class="flow-chart cumulative-chart"></div>
+        </section>
       </section>
       <section id="settings-view" hidden>
         <header class="view-toolbar"><h1>設定</h1></header>
@@ -108,6 +118,15 @@
         <div class="dialog-heading"><h2>収支を記録</h2><button type="button" id="close-form" class="close-button">×</button></div>
         <label>日付<input id="date" name="date" type="date" required /></label>
         <div class="choice-field">
+          <div class="choice-label"><span>レート</span><button type="button" class="manage-names" data-name-type="rate">編集</button></div>
+          <input name="rate" type="text" readonly />
+          <div id="rate-tabs" class="name-tabs" aria-label="レートを選択"></div>
+        </div>
+        <div class="money-fields">
+          <label>投資（円）<input name="investment" type="number" min="0" step="1" /></label>
+          <label>回収（円）<input name="returnAmount" type="number" min="0" step="1" /></label>
+        </div>
+        <div class="choice-field">
           <div class="choice-label"><span>店名</span><button type="button" class="manage-names" data-name-type="shop">編集</button></div>
           <input name="shop" type="text" placeholder="未選択" readonly />
           <div id="shop-tabs" class="name-tabs" aria-label="店名を選択"></div>
@@ -118,15 +137,6 @@
           <div id="machine-tabs" class="name-tabs" aria-label="機種名を選択"></div>
         </div>
         <label>台番号<input name="machineNumber" type="text" inputmode="numeric" placeholder="例：123" /></label>
-        <div class="choice-field">
-          <div class="choice-label"><span>レート</span><button type="button" class="manage-names" data-name-type="rate">編集</button></div>
-          <input name="rate" type="text" readonly />
-          <div id="rate-tabs" class="name-tabs" aria-label="レートを選択"></div>
-        </div>
-        <div class="money-fields">
-          <label>投資（円）<input name="investment" type="number" min="0" step="1" /></label>
-          <label>回収（円）<input name="returnAmount" type="number" min="0" step="1" /></label>
-        </div>
         <label>メモ<textarea name="memo" rows="3" placeholder="例：イベント日。高設定っぽかった。"></textarea></label>
         <button type="submit" class="primary-button">保存する</button>
       </form>

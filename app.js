@@ -2,6 +2,7 @@ const storageKey = "suroku-records";
 const shopsKey = "suroku-shops";
 const machinesKey = "suroku-machines";
 const ratesKey = "suroku-rates";
+const rateOrderVersionKey = "suroku-rate-order-v2";
 let displayedMonth = new Date();
 let selectedDate = "";
 let editingId = null;
@@ -43,6 +44,12 @@ const rateRanking = document.querySelector("#rate-ranking");
 const monthlyChart = document.querySelector("#monthly-chart");
 const monthlyChartTitle = document.querySelector("#monthly-chart-title");
 const monthlyChartDetail = document.querySelector("#monthly-chart-detail");
+const flowChart = document.querySelector("#flow-chart");
+const flowChartTitle = document.querySelector("#flow-chart-title");
+const flowChartDetail = document.querySelector("#flow-chart-detail");
+const cumulativeChart = document.querySelector("#cumulative-chart");
+const cumulativeChartTitle = document.querySelector("#cumulative-chart-title");
+const cumulativeChartDetail = document.querySelector("#cumulative-chart-detail");
 const dashboardView = document.querySelector("#dashboard-view");
 const analysisView = document.querySelector("#analysis-view");
 const graphView = document.querySelector("#graph-view");
@@ -58,14 +65,24 @@ function saveRecords(records) { localStorage.setItem(storageKey, JSON.stringify(
 const nameConfigs = {
   shop: { key: shopsKey, field: "shop", label: "店名", tabs: shopTabs },
   machine: { key: machinesKey, field: "machine", label: "機種名", tabs: machineTabs },
-  rate: { key: ratesKey, field: "rate", label: "レート", tabs: rateTabs, defaults: ["20スロ", "5スロ", "4パチ", "1パチ", "その他"] },
+  rate: { key: ratesKey, field: "rate", label: "レート", tabs: rateTabs, defaults: ["20スロ", "4パチ", "5スロ", "1パチ", "その他"] },
 };
 function getNames(type) {
   const config = nameConfigs[type];
   const stored = localStorage.getItem(config.key);
-  if (stored !== null) return JSON.parse(stored).map((name) => name.trim()).filter(Boolean);
-  const migrated = [...new Set([...(config.defaults || []), ...getRecords().map((record) => record[config.field]?.trim()).filter(Boolean)])].sort((a, b) => a.localeCompare(b, "ja"));
+  if (stored !== null) {
+    const names = JSON.parse(stored).map((name) => name.trim()).filter(Boolean);
+    if (type !== "rate" || localStorage.getItem(rateOrderVersionKey) === "2") return names;
+    const standard = config.defaults.filter((name) => names.includes(name));
+    const others = names.filter((name) => !config.defaults.includes(name));
+    const reordered = [...standard, ...others];
+    localStorage.setItem(config.key, JSON.stringify(reordered));
+    localStorage.setItem(rateOrderVersionKey, "2");
+    return reordered;
+  }
+  const migrated = [...new Set([...(config.defaults || []), ...getRecords().map((record) => record[config.field]?.trim()).filter(Boolean).filter((name) => !(config.defaults || []).includes(name))])];
   localStorage.setItem(config.key, JSON.stringify(migrated));
+  if (type === "rate") localStorage.setItem(rateOrderVersionKey, "2");
   return migrated;
 }
 function saveName(type, name) {
@@ -216,6 +233,54 @@ function renderMonthlyChart(records, year) {
   }).join("");
 }
 
+function renderFlowChart(records, year) {
+  const monthly = Array.from({ length: 12 }, (_, month) => records
+    .filter((record) => record.date.startsWith(`${year}-${String(month + 1).padStart(2, "0")}`))
+    .reduce((total, record) => ({ investment: total.investment + record.investment, returnAmount: total.returnAmount + record.returnAmount }), { investment: 0, returnAmount: 0 }));
+  const maxAmount = Math.max(...monthly.flatMap((item) => [item.investment, item.returnAmount]), 1);
+  const width = 360;
+  const height = 176;
+  const padding = { top: 14, right: 10, bottom: 27, left: 10 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const x = (month) => padding.left + (plotWidth / 11) * month;
+  const y = (amount) => padding.top + plotHeight - (amount / maxAmount) * plotHeight;
+  const points = (key) => monthly.map((item, month) => `${x(month).toFixed(1)},${y(item[key]).toFixed(1)}`).join(" ");
+  const dot = (key, label, color) => monthly.map((item, month) => `<button type="button" class="flow-point ${key}" style="left:${(x(month) / width) * 100}%;top:${(y(item[key]) / height) * 100}%;" data-flow-month="${month}" data-flow-kind="${key}" data-flow-amount="${item[key]}" aria-label="${month + 1}月 ${label} ${money(item[key])}"></button>`).join("");
+  flowChartTitle.textContent = `${year}年 投資・回収の推移`;
+  flowChartDetail.textContent = "点を押すと金額を表示";
+  flowChartDetail.className = "";
+  flowChart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${year}年の投資と回収の月別推移"><line class="flow-grid" x1="${padding.left}" y1="${padding.top}" x2="${width - padding.right}" y2="${padding.top}"></line><line class="flow-grid" x1="${padding.left}" y1="${padding.top + plotHeight / 2}" x2="${width - padding.right}" y2="${padding.top + plotHeight / 2}"></line><line class="flow-grid" x1="${padding.left}" y1="${padding.top + plotHeight}" x2="${width - padding.right}" y2="${padding.top + plotHeight}"></line><polyline class="flow-path investment" points="${points("investment")}"></polyline><polyline class="flow-path return" points="${points("returnAmount")}"></polyline>${monthly.map((_, month) => `<text class="flow-month" x="${x(month)}" y="${height - 7}">${month + 1}月</text>`).join("")}</svg><div class="flow-points">${dot("investment", "投資", "#ff5e62")}${dot("returnAmount", "回収", "#38d478")}</div>`;
+}
+
+function renderCumulativeChart(records, year) {
+  let runningTotal = 0;
+  const totals = Array.from({ length: 12 }, (_, month) => {
+    const monthlyBalance = records
+      .filter((record) => record.date.startsWith(`${year}-${String(month + 1).padStart(2, "0")}`))
+      .reduce((sum, record) => sum + balance(record), 0);
+    runningTotal += monthlyBalance;
+    return runningTotal;
+  });
+  const minAmount = Math.min(0, ...totals);
+  const maxAmount = Math.max(0, ...totals);
+  const range = maxAmount - minAmount || 1;
+  const width = 360;
+  const height = 176;
+  const padding = { top: 14, right: 10, bottom: 27, left: 10 };
+  const plotWidth = width - padding.left - padding.right;
+  const plotHeight = height - padding.top - padding.bottom;
+  const x = (month) => padding.left + (plotWidth / 11) * month;
+  const y = (amount) => padding.top + ((maxAmount - amount) / range) * plotHeight;
+  const zeroY = y(0);
+  const points = totals.map((amount, month) => `${x(month).toFixed(1)},${y(amount).toFixed(1)}`).join(" ");
+  const dots = totals.map((amount, month) => `<button type="button" class="flow-point cumulative ${amount > 0 ? "positive" : amount < 0 ? "negative" : "zero"}" style="left:${(x(month) / width) * 100}%;top:${(y(amount) / height) * 100}%;" data-cumulative-month="${month}" data-cumulative-amount="${amount}" aria-label="${month + 1}月末の累計収支 ${yen(amount)}"></button>`).join("");
+  cumulativeChartTitle.textContent = `${year}年 累計収支の推移`;
+  cumulativeChartDetail.textContent = "点を押すと金額を表示";
+  cumulativeChartDetail.className = "";
+  cumulativeChart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${year}年の累計収支推移"><line class="flow-grid" x1="${padding.left}" y1="${padding.top}" x2="${width - padding.right}" y2="${padding.top}"></line><line class="flow-grid zero-line" x1="${padding.left}" y1="${zeroY}" x2="${width - padding.right}" y2="${zeroY}"></line><line class="flow-grid" x1="${padding.left}" y1="${padding.top + plotHeight}" x2="${width - padding.right}" y2="${padding.top + plotHeight}"></line><polyline class="flow-path cumulative" points="${points}"></polyline>${totals.map((_, month) => `<text class="flow-month" x="${x(month)}" y="${height - 7}">${month + 1}月</text>`).join("")}</svg><div class="flow-points">${dots}</div>`;
+}
+
 function renderCalendar() {
   const year = displayedMonth.getFullYear();
   const month = displayedMonth.getMonth();
@@ -253,6 +318,8 @@ function renderCalendar() {
   monthlyDays.textContent = `${playedDays}日`;
   monthlyWinRate.textContent = playedDays ? `${Math.round((wins / playedDays) * 100)}%` : "—";
   renderMonthlyChart(records, year);
+  renderFlowChart(records, year);
+  renderCumulativeChart(records, year);
   renderRanking(records, "shop", shopRanking, shopSort.value);
   renderRanking(records, "machine", machineRanking, machineSort.value);
   renderRanking(records, "rate", rateRanking, rateSort.value);
@@ -314,6 +381,23 @@ monthlyChart.addEventListener("click", (event) => {
   monthlyChartDetail.textContent = `${displayedMonth.getFullYear()}年${Number(column.dataset.chartMonth) + 1}月　${yen(amount)}`;
   monthlyChartDetail.className = amount > 0 ? "positive" : amount < 0 ? "negative" : "";
   monthlyChart.querySelectorAll(".chart-column").forEach((item) => item.classList.toggle("selected", item === column));
+});
+flowChart.addEventListener("click", (event) => {
+  const point = event.target.closest(".flow-point");
+  if (!point) return;
+  const amount = Number(point.dataset.flowAmount);
+  const kind = point.dataset.flowKind === "investment" ? "投資" : "回収";
+  flowChartDetail.textContent = `${displayedMonth.getFullYear()}年${Number(point.dataset.flowMonth) + 1}月　${kind} ${money(amount)}`;
+  flowChartDetail.className = point.dataset.flowKind === "investment" ? "negative" : "positive";
+  flowChart.querySelectorAll(".flow-point").forEach((item) => item.classList.toggle("selected", item === point));
+});
+cumulativeChart.addEventListener("click", (event) => {
+  const point = event.target.closest(".flow-point.cumulative");
+  if (!point) return;
+  const amount = Number(point.dataset.cumulativeAmount);
+  cumulativeChartDetail.textContent = `${displayedMonth.getFullYear()}年${Number(point.dataset.cumulativeMonth) + 1}月末　${yen(amount)}`;
+  cumulativeChartDetail.className = amount > 0 ? "positive" : amount < 0 ? "negative" : "";
+  cumulativeChart.querySelectorAll(".flow-point").forEach((item) => item.classList.toggle("selected", item === point));
 });
 exportBackupButton.addEventListener("click", exportBackup);
 importBackupInput.addEventListener("change", async () => {
